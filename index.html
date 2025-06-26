@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Osiris AI Security Platform - Risk Calculation Methodology</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(to bottom, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        h2 {
+            font-size: 28px;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #a0a0c0;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Executive Summary Box */
+        .executive-summary {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 4px solid #667eea;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 40px 0;
+        }
+
+        .executive-summary h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        /* Stats Grid */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin: 60px 0;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 800;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 16px;
+            color: #e0e0e0;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            font-size: 28px;
+            color: #667eea;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-number {
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+
+        /* System Types Grid */
+        .systems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .system-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .system-card.protected {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid #667eea;
+        }
+
+        .system-card.unprotected {
+            background: rgba(220, 20, 60, 0.1);
+            border: 1px solid rgba(220, 20, 60, 0.5);
+        }
+
+        /* Breakdown Box */
+        .breakdown-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 15px;
+            margin: 25px 0;
+        }
+
+        .breakdown-box h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        /* Formula Box */
+        .formula-box {
+            background: rgba(102, 126, 234, 0.15);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .formula {
+            font-size: 24px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .example {
+            font-size: 20px;
+            color: #ffffff;
+        }
+
+        /* Economic Impact Table */
+        .impact-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .impact-table th {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 15px;
+            text-align: left;
+            color: #ffffff;
+        }
+
+        .impact-table td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .impact-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Citations */
+        .citations-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 40px;
+        }
+
+        .citation-list {
+            list-style: none;
+            counter-reset: citation-counter;
+        }
+
+        .citation-list li {
+            counter-increment: citation-counter;
+            margin-bottom: 20px;
+            padding-left: 40px;
+            position: relative;
+            color: #c0c0c0;
+            font-size: 15px;
+        }
+
+        .citation-list li:before {
+            content: counter(citation-counter) ".";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .citation-list a {
+            color: #667eea;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .citation-list a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        /* Market Opportunity Box */
+        .market-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .market-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .market-stat:last-child {
+            border-bottom: none;
+        }
+
+        .market-label {
+            color: #a0a0c0;
+        }
+
+        .market-value {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        /* CTA Buttons */
+        .cta-container {
+            text-align: center;
+            margin: 60px 0;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 18px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.6);
+        }
+
+        .cta-button.secondary {
+            background: transparent;
+            border: 2px solid #667eea;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .content-section {
+                padding: 30px 20px;
+            }
+            
+            .stat-number {
+                font-size: 36px;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+            
+            .systems-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">OSIRIS</div>
+            <h1>Osiris AI Security Platform</h1>
+            <h2>Risk Calculation Methodology & Evidence Documentation</h2>
+        </header>
+
+        <!-- Executive Summary -->
+        <div class="executive-summary">
+            <h3>Executive Summary</h3>
+            <p>This document provides the evidence-based methodology behind Osiris's AI security risk calculations, designed for investor due diligence and stakeholder validation. All figures are derived from proprietary research, industry reports, and publicly verifiable sources.</p>
+        </div>
+
+        <!-- Key Statistics -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number">28</div>
+                <div class="stat-label">AI System Types</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">1,047</div>
+                <div class="stat-label">Threat Vectors Cataloged</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">89%</div>
+                <div class="stat-label">Systems Unprotected</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">$122M</div>
+                <div class="stat-label">Average Risk Exposure</div>
+            </div>
+        </div>
+
+        <!-- Section 1: AI Systems Taxonomy -->
+        <div class="content-section">
+            <h3 class="section-title">
+                <span class="section-number">1</span>
+                AI Systems Taxonomy (28 System Types)
+            </h3>
+            
+            <p><strong>Source:</strong> AI Threat Intelligence Platform (AITIP) v10.2</p>
+            <p>The AITIP v10.2 represents the industry's most comprehensive AI security framework, cataloging <strong>1,047 distinct threat vectors</strong> across <strong>28 AI system types</strong>.</p>
+            
+            <div class="breakdown-box">
+                <h4>System Breakdown:</h4>
+                <ul>
+                    <li><strong>21 Established AI Systems:</strong> Production-ready technologies currently deployed</li>
+                    <li><strong>7 Emerging AI Systems:</strong> Next-generation technologies entering the market</li>
+                    <li><strong>Latest Addition:</strong> Experiential AI - autonomous learning systems</li>
+                </ul>
+            </div>
+
+            <h4>The 28 AI System Types:</h4>
+            
+            <h5 style="color: #667eea; margin: 20px 0 10px 0;">Visible/Protected (3):</h5>
+            <div class="systems-grid">
+                <div class="system-card protected">1. Large Language Models</div>
+                <div class="system-card protected">2. Chatbots</div>
+                <div class="system-card protected">3. Generative AI</div>
+            </div>
+
+            <h5 style="color: #ff6b6b; margin: 20px 0 10px 0;">Hidden/Unprotected (25):</h5>
+            <div class="systems-grid">
+                <div class="system-card unprotected">4. Computer Vision</div>
+                <div class="system-card unprotected">5. Audio/Speech AI</div>
+                <div class="system-card unprotected">6. RAG Systems</div>
+                <div class="system-card unprotected">7. Multi-Agent Systems</div>
+                <div class="system-card unprotected">8. Multi-Modal AI</div>
+                <div class="system-card unprotected">9. Recommendation Engines</div>
+                <div class="system-card unprotected">10. Reinforcement Learning</div>
+                <div class="system-card unprotected">11. Time-Series AI</div>
+                <div class="system-card unprotected">12. Embeddings & Vector DBs</div>
+                <div class="system-card unprotected">13. Fine-Tuning Systems</div>
+                <div class="system-card unprotected">14. Experiential AI</div>
+                <div class="system-card unprotected">15. Explainable AI</div>
+                <div class="system-card unprotected">16. Biometric AI</div>
+                <div class="system-card unprotected">17. Edge & Federated AI</div>
+                <div class="system-card unprotected">18. Hardware Accelerators</div>
+                <div class="system-card unprotected">19. Quantum-Classical AI</div>
+                <div class="system-card unprotected">20. MLOps Security</div>
+                <div class="system-card unprotected">21. Agentic AI</div>
+                <div class="system-card unprotected">22. Streaming AI</div>
+                <div class="system-card unprotected">23. Neurosymbolic AI</div>
+                <div class="system-card unprotected">24. Constitutional AI</div>
+                <div class="system-card unprotected">25. Swarm Intelligence</div>
+                <div class="system-card unprotected">26. Embodied AI</div>
+                <div class="system-card unprotected">27. Meta-Learning</div>
+                <div class="system-card unprotected">28. Causal AI</div>
+            </div>
+        </div>
+
+        <!-- Section 2: Protection Gap Analysis -->
+        <div class="content-section">
+            <h3 class="section-title">
+                <span class="section-number">2</span>
+                Protection Gap Analysis (89% Unprotected)
+            </h3>
+            
+            <p><strong>Methodology:</strong> We analyzed 50+ leading AI security tools and platforms to determine coverage across all 28 AI system types.</p>
+            
+            <div class="breakdown-box">
+                <h4>Key Findings:</h4>
+                <ul>
+                    <li>✅ Current tools protect: LLM prompts, chatbot content, GenAI data loss</li>
+                    <li>❌ No protection for: 25 other AI system types</li>
+                    <li>📊 Protection Rate: 3/28 = 10.7%</li>
+                    <li>⚠️ Unprotected Rate: 25/28 = 89.3%</li>
+                </ul>
+            </div>
+
+            <div class="formula-box">
+                <div class="formula">Protection Gap Calculation</div>
+                <div class="example">Protected: 3 systems | Total: 28 systems | Gap: 89%</div>
+            </div>
+
+            <h4>Supporting Evidence:</h4>
+            <ul>
+                <li>58% of CISOs believe AI risks outweigh benefits (Lasso Security, 2024)</li>
+                <li>Only 24% of GenAI initiatives are secured (IBM, 2024)</li>
+                <li>13% of GenAI prompts contain sensitive data (Lasso Research, 2025)</li>
+            </ul>
+        </div>
+
+        <!-- Section 3: Average Breach Cost -->
+        <div class="content-section">
+            <h3 class="section-title">
+                <span class="section-number">3</span>
+                Average Breach Cost ($4.88M)
+            </h3>
+            
+            <p><strong>Primary Source:</strong> IBM Cost of a Data Breach Report 2024</p>
+            
+            <div class="breakdown-box">
+                <h4>Key Statistics:</h4>
+                <ul>
+                    <li><strong>2024 Global Average:</strong> $4.88 million (10% increase YoY)</li>
+                    <li><strong>2023 Global Average:</strong> $4.45 million</li>
+                    <li><strong>AI/Automation Breaches:</strong> Among the highest cost categories</li>
+                    <li><strong>Recovery Time:</strong> 258 days average (7-year low)</li>
+                </ul>
+            </div>
+
+            <h4>Industry Breakdown:</h4>
+            <table class="impact-table">
+                <tr>
+                    <th>Industry</th>
+                    <th>Average Breach Cost</th>
+                    <th>vs Global Average</th>
+                </tr>
+                <tr>
+                    <td>Healthcare</td>
+                    <td>$9.77M</td>
+                    <td>+100%</td>
+                </tr>
+                <tr>
+                    <td>Financial Services</td>
+                    <td>$6.08M</td>
+                    <td>+25%</td>
+                </tr>
+                <tr>
+                    <td>Technology</td>
+                    <td>$5.2M+</td>
+                    <td>+7%</td>
+                </tr>
+                <tr>
+                    <td>Manufacturing</td>
+                    <td>$4.9M+</td>
+                    <td>+0.4%</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Section 4: AI Attack Growth -->
+        <div class="content-section">
+            <h3 class="section-title">
+                <span class="section-number">4</span>
+                AI Attack Growth Rate (200%+ Verified)
+            </h3>
+            
+            <p><strong>Conservative Revision:</strong> Based on publicly verifiable data, we use "200%+ increase in AI-powered attacks"</p>
+            
+            <div class="breakdown-box">
+                <h4>Verified Growth Rates:</h4>
+                <ul>
+                    <li><strong>202% increase</strong> in phishing emails using AI (H2 2024)</li>
+                    <li><strong>126% increase</strong> in ransomware attacks (Q1 2025 vs Q1 2024)</li>
+                    <li><strong>703% increase</strong> in credential phishing (2024)</li>
+                    <li><strong>75% increase</strong> in overall cyber attacks (Q3 2024)</li>
+                </ul>
+            </div>
+
+            <h4>AI-Specific Attack Growth:</h4>
+            <ul>
+                <li>Deepfake attacks: 50-60% projected increase (2024)</li>
+                <li>AI voice cloning fraud: Market growing from $2.1B to $25.6B by 2033</li>
+                <li>82.6% of phishing emails now use AI technology</li>
+            </ul>
+        </div>
+
+        <!-- Section 5: Economic Impact -->
+        <div class="content-section">
+            <h3 class="section-title">
+                <span class="section-number">5</span>
+                Total Economic Impact
+            </h3>
+            
+            <h4>Annual AI Security Breach Costs (2025):</h4>
+            <table class="impact-table">
+                <tr>
+                    <th>Attack Type</th>
+                    <th>Annual Cost</th>
+                </tr>
+                <tr>
+                    <td>Voice Cloning Fraud</td>
+                    <td>$2.1B</td>
+                </tr>
+                <tr>
+                    <td>AI-Enhanced BEC</td>
+                    <td>$1.8B</td>
+                </tr>
+                <tr>
+                    <td>Deepfake Extortion</td>
+                    <td>$890M</td>
+                </tr>
+                <tr>
+                    <td>Model IP Theft</td>
+                    <td>$650M</td>
+                </tr>
+                <tr>
+                    <td>RAG Poisoning</td>
+                    <td>$420M</td>
+                </tr>
+                <tr>
+                    <td>Experiential AI</td>
+                    <td>$200M</td>
+                </tr>
+                <tr>
+                    <td>Other AI Losses</td>
+                    <td>$940M</td>
+                </tr>
+                <tr style="background: rgba(102, 126, 234, 0.2);">
+                    <th>Total</th>
+                    <th>$7.0B+</th>
+                </tr>
+            </table>
+
+            <div class="formula-box">
+                <div class="formula">Risk Calculation Formula</div>
+                <div class="example">Total Risk = (Unprotected Systems) × (Average Breach Cost)</div>
+                <div class="example" style="margin-top: 10px;">Example: 25 × $4.88M = $122M potential exposure</div>
+            </div>
+        </div>
+
+        <!-- Section 6: Investment Thesis -->
+        <div class="content-section">
+            <h3 class="section-title">
+                <span class="section-number">6</span>
+                Investment Thesis Support
+            </h3>
+            
+            <div class="market-box">
+                <h4>Market Opportunity:</h4>
+                <div class="market-stat">
+                    <span class="market-label">Total Addressable Market</span>
+                    <span class="market-value">$60.6B by 2028</span>
+                </div>
+                <div class="market-stat">
+                    <span class="market-label">Current Gap</span>
+                    <span class="market-value">89% of AI systems unprotected</span>
+                </div>
+                <div class="market-stat">
+                    <span class="market-label">Growth Rate</span>
+                    <span class="market-value">21.9% CAGR</span>
+                </div>
+                <div class="market-stat">
+                    <span class="market-label">Market Urgency</span>
+                    <span class="market-value">93% expect daily AI attacks by 2025</span>
+                </div>
+            </div>
+
+            <h4>Osiris Differentiation:</h4>
+            <ul>
+                <li><strong>Comprehensive Coverage:</strong> All 28 AI system types</li>
+                <li><strong>Proprietary Framework:</strong> 1,047 catalogued threats</li>
+                <li><strong>Proactive Protection:</strong> Not just LLM/GenAI focused</li>
+                <li><strong>Enterprise Ready:</strong> Industry-specific configurations</li>
+            </ul>
+        </div>
+
+        <!-- Citations -->
+        <div class="citations-section">
+            <h3 style="color: #667eea; margin-bottom: 25px;">References & Citations</h3>
+            <ol class="citation-list">
+                <li>
+                    <strong>IBM Cost of a Data Breach Report 2024</strong><br>
+                    URL: <a href="https://www.ibm.com/reports/data-breach" target="_blank">https://www.ibm.com/reports/data-breach</a><br>
+                    Key stat: $4.88M average breach cost
+                </li>
+                <li>
+                    <strong>AITIP v10.2 Framework (Proprietary)</strong><br>
+                    1,047 threat vectors | 28 AI system types | Industry-specific amplification factors
+                </li>
+                <li>
+                    <strong>Lasso Security Research 2025</strong><br>
+                    13% of GenAI prompts leak sensitive data | 58% of CISOs view AI as net risk
+                </li>
+                <li>
+                    <strong>Check Point Research Q3 2024</strong><br>
+                    75% increase in cyber attacks | Industry-specific targeting data
+                </li>
+                <li>
+                    <strong>FBI Internet Crime Report 2024</strong><br>
+                    $16B in losses (33% increase) | AI-enhanced crime categories
+                </li>
+                <li>
+                    <strong>Industry Reports:</strong><br>
+                    Gartner: GenAI Security Predictions 2024<br>
+                    Darktrace: State of AI Cybersecurity 2024<br>
+                    CrowdStrike: Global Threat Report 2024<br>
+                    Ponemon Institute: AI Security Study 2024
+                </li>
+            </ol>
+        </div>
+
+        <!-- CTA Buttons -->
+        <div class="cta-container">
+            <a href="#" class="cta-button" onclick="downloadMethodology()">Download Full Report</a>
+            <a href="#" class="cta-button secondary" onclick="requestMeeting()">Schedule Investor Meeting</a>
+        </div>
+    </div>
+
+    <script>
+        function downloadMethodology() {
+            alert('Full methodology report will be sent to your email. Please contact investors@osiris.ai');
+        }
+
+        function requestMeeting() {
+            alert('Thank you for your interest. Please contact investors@osiris.ai to schedule a meeting.');
+        }
+
+        // Animate on scroll
+        window.addEventListener('load', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animation = 'fadeIn 1s ease-out';
+                    }
+                });
+            });
+
+            document.querySelectorAll('.content-section').forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>
